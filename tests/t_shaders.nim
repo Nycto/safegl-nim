@@ -1,4 +1,4 @@
-import opengl, opengl_tools, options
+import opengl, safegl, options
 
 proc typeCheckMe() =
     let program = createProgram([

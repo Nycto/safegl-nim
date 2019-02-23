@@ -1,2 +1,5 @@
-import opengl_tools
+import safegl
+
+proc typeCheckMe() =
+    initOpenGl()
 

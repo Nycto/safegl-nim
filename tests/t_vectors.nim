@@ -1,4 +1,4 @@
-import opengl_tools, unittest, opengl
+import safegl, unittest, opengl
 
 suite "Vector operations":
 
