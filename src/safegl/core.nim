@@ -49,4 +49,12 @@ proc initOpenGl*(
     if screenSize.isSome:
         glViewport(0, 0, screenSize.get.width.GLsizei, screenSize.get.height.GLsizei)
 
+template clear*(bits: set[OglClear] = { OglClear.ColorBufferBit, OglClear.DepthBufferBit }) =
+    ## Clears the given buffers
+
+    var accum: GlBitfield
+    for bit in bits:
+        accum = accum or bit.glEnum
+
+    glClear(accum)
 

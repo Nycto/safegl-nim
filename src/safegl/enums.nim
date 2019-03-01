@@ -2,6 +2,7 @@ import opengl, macros, strutils, sequtils
 
 proc enumFlag(glConst: NimNode, suffix: string): NimNode =
     ## Convert an opengl constant to a Nim constant
+    expectKind glConst, nnkIdent
     var parts = glConst.strVal.split('_')
     parts.add(suffix)
     parts.delete(0)
@@ -10,6 +11,8 @@ proc enumFlag(glConst: NimNode, suffix: string): NimNode =
 
 proc createEnum(name: NimNode, suffix: string, flags: NimNode): NimNode =
     ## Creates an enum out of opengl constants
+    expectKind name, nnkIdent
+
     var enumFields = nnkEnumTy.newTree(newEmptyNode())
     for flag in flags:
         expectKind flag, nnkIdent
@@ -23,8 +26,11 @@ proc createEnum(name: NimNode, suffix: string, flags: NimNode): NimNode =
         )
     )
 
-proc createToGlProc(name: NimNode, suffix: string, flags: NimNode): NimNode =
+proc createToGlProc(name: NimNode, suffix: string, glType, flags: NimNode): NimNode =
     ## Creates a function to convert an enum back to an opengl function
+    expectKind name, nnkIdent
+    expectKind glType, nnkIdent
+
     let body = nnkCaseStmt.newTree(ident("key"))
     for flag in flags:
         expectKind flag, nnkIdent
@@ -37,23 +43,24 @@ proc createToGlProc(name: NimNode, suffix: string, flags: NimNode): NimNode =
 
     result = newProc(
         postfix(ident("glEnum"), "*"),
-        [ ident("GlEnum"), newIdentDefs(ident("key"), name) ],
+        [ glType, newIdentDefs(ident("key"), name) ],
         body
     )
 
-macro defineOglEnum(name, suffix, flags: untyped): untyped =
+macro defineOglEnum(name, suffix, glType, flags: untyped): untyped =
     ## Create an enum and a toGlConst function
     expectKind name, nnkIdent
     expectKind suffix, nnkIdent
-    result = newStmtList(createEnum(name, suffix.strVal, flags), createToGlProc(name, suffix.strVal, flags))
+    expectKind glType, nnkIdent
+    result = newStmtList(createEnum(name, suffix.strVal, flags), createToGlProc(name, suffix.strVal, glType, flags))
 
-macro defineOglEnum(name, flags: untyped): untyped =
+macro defineOglEnum(name, glType, flags: untyped): untyped =
     ## Create an enum and a toGlConst function
     expectKind name, nnkIdent
-    result = newStmtList(createEnum(name, "", flags), createToGlProc(name, "", flags))
+    result = newStmtList(createEnum(name, "", flags), createToGlProc(name, "", glType, flags))
 
 
-defineOglEnum(OglFlag, Flag): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glEnable.xml
+defineOglEnum(OglFlag, Flag, GlEnum): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glEnable.xml
     GL_POINT_SMOOTH
     GL_LINE_SMOOTH
     GL_LINE_STIPPLE
@@ -120,12 +127,12 @@ defineOglEnum(OglFlag, Flag): ## See https://www.khronos.org/registry/OpenGL-Ref
     GL_VERTEX_PROGRAM_TWO_SIDE
     GL_POINT_SPRITE
 
-defineOglEnum(OglHintMode, Mode): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glHint.xml
+defineOglEnum(OglHintMode, Mode, GlEnum): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glHint.xml
     GL_DONT_CARE
     GL_FASTEST
     GL_NICEST
 
-defineOglEnum(OglHint, Hint): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glHint.xml
+defineOglEnum(OglHint, Hint, GlEnum): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glHint.xml
     GL_PERSPECTIVE_CORRECTION_HINT
     GL_POINT_SMOOTH_HINT
     GL_LINE_SMOOTH_HINT
@@ -135,7 +142,7 @@ defineOglEnum(OglHint, Hint): ## See https://www.khronos.org/registry/OpenGL-Ref
     GL_TEXTURE_COMPRESSION_HINT
     GL_FRAGMENT_SHADER_DERIVATIVE_HINT
 
-defineOglEnum(OglDepthFunc, Cmp): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glDepthFunc.xml
+defineOglEnum(OglDepthFunc, Cmp, GlEnum): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glDepthFunc.xml
     GL_NEVER
     GL_LESS
     GL_EQUAL
@@ -145,11 +152,11 @@ defineOglEnum(OglDepthFunc, Cmp): ## See https://www.khronos.org/registry/OpenGL
     GL_GEQUAL
     GL_ALWAYS
 
-defineOglEnum(OglShadeModel, Model): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glShadeModel.xml
+defineOglEnum(OglShadeModel, Model, GlEnum): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glShadeModel.xml
     GL_FLAT
     GL_SMOOTH
 
-defineOglEnum(OglBlendFunc, Func):
+defineOglEnum(OglBlendFunc, Func, GlEnum):
     GL_ZERO
     GL_ONE
     GL_SRC_COLOR
@@ -166,11 +173,11 @@ defineOglEnum(OglBlendFunc, Func):
     GL_ONE_MINUS_CONSTANT_ALPHA
     GL_SRC_ALPHA_SATURATE
 
-defineOglEnum(OglShaderType):
+defineOglEnum(OglShaderType, GlEnum):
     GL_VERTEX_SHADER
     GL_FRAGMENT_SHADER
 
-defineOglEnum(OglVertexType, Type):
+defineOglEnum(OglVertexType, Type, GlEnum):
     cGL_BYTE
     cGL_UNSIGNED_BYTE
     cGL_SHORT
@@ -178,4 +185,10 @@ defineOglEnum(OglVertexType, Type):
     cGL_INT
     cGL_FLOAT
     cGL_DOUBLE
+
+defineOglEnum(OglClear, GlBitfield):
+    GL_COLOR_BUFFER_BIT
+    GL_DEPTH_BUFFER_BIT
+    GL_ACCUM_BUFFER_BIT
+    GL_STENCIL_BUFFER_BIT
 
