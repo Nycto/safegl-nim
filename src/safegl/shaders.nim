@@ -1,4 +1,4 @@
-import opengl, options
+import opengl, enums
 
 type
     ShaderError* = object of Defect ## Unrecoverable errors in a shader
@@ -10,10 +10,6 @@ type
     ShaderProgram* = object ## A shader program and the associated shader IDs
         shaders: seq[ShaderId]
         programId: ShaderProgramId
-
-    ShaderType* = enum ## The various types of shaders that can be created
-        Vertex,
-        Fragment
 
     Uniform* = distinct GLint ## A uniform value passed to the shaders
 
@@ -38,16 +34,12 @@ template assertSuccess(id: typed, ivFn, statusConst, logFn, message: untyped) =
         let log = getError(id, ivFn, logFn)
         raise ShaderError.newException(message & log)
 
-proc create*(shaderType: ShaderType, src: string): ShaderId =
+proc create*(shaderType: OglShaderType, src: string): ShaderId =
     ## Compiles and creates an OpenGL shader
     let shaderCString = allocCStringArray([src])
     defer: deallocCStringArray(shaderCString)
 
-    let gltype = case shaderType
-        of ShaderType.Vertex: GL_VERTEX_SHADER
-        of ShaderType.Fragment: GL_FRAGMENT_SHADER
-
-    let shaderId = glCreateShader(glType)
+    let shaderId = glCreateShader(shaderType.glEnum)
     result = shaderId.ShaderId
 
     glShaderSource(shaderId, 1, shaderCString, nil)
@@ -70,13 +62,13 @@ proc createProgram*(shaderIds: varargs[ShaderId]): ShaderProgram =
     glLinkProgram(programId)
     assertSuccess(programId, glGetProgramiv, GL_LINK_STATUS, glGetProgramInfoLog, "Program linking failed: ")
 
-proc createProgram*(shaders: array[ShaderType, Option[string]]): ShaderProgram =
+proc createProgram*(shaders: array[OglShaderType, seq[string]]): ShaderProgram =
     ## Creates a program out of a suite of shader sources
 
     var shaderIds: seq[ShaderId]
-    for shaderType, source in shaders:
-        if source.isSome:
-            shaderIds.add(shaderType.create(source.get))
+    for shaderType, sources in shaders:
+        for source in sources:
+            shaderIds.add(shaderType.create(source))
 
     result = createProgram(shaderIds)
 

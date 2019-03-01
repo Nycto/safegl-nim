@@ -1,14 +1,14 @@
 import opengl, macros, strutils, sequtils
 
-proc enumFlag(glConst, suffix: NimNode): NimNode =
+proc enumFlag(glConst: NimNode, suffix: string): NimNode =
     ## Convert an opengl constant to a Nim constant
     var parts = glConst.strVal.split('_')
-    parts.add(suffix.strVal)
+    parts.add(suffix)
     var asString = parts.mapIt(it.toLowerAscii.capitalizeAscii).join()
     asString.removePrefix("Gl")
     result = ident(asString)
 
-proc createEnum(name, suffix, flags: NimNode): NimNode =
+proc createEnum(name: NimNode, suffix: string, flags: NimNode): NimNode =
     ## Creates an enum out of opengl constants
     var enumFields = nnkEnumTy.newTree(newEmptyNode())
     for flag in flags:
@@ -23,7 +23,7 @@ proc createEnum(name, suffix, flags: NimNode): NimNode =
         )
     )
 
-proc createToGlProc(name, suffix, flags: NimNode): NimNode =
+proc createToGlProc(name: NimNode, suffix: string, flags: NimNode): NimNode =
     ## Creates a function to convert an enum back to an opengl function
     let body = nnkCaseStmt.newTree(ident("key"))
     for flag in flags:
@@ -43,13 +43,14 @@ proc createToGlProc(name, suffix, flags: NimNode): NimNode =
 
 macro defineOglEnum(name, suffix, flags: untyped): untyped =
     ## Create an enum and a toGlConst function
-
     expectKind name, nnkIdent
     expectKind suffix, nnkIdent
+    result = newStmtList(createEnum(name, suffix.strVal, flags), createToGlProc(name, suffix.strVal, flags))
 
-    result = newStmtList()
-    result.add(createEnum(name, suffix, flags))
-    result.add(createToGlProc(name, suffix, flags))
+macro defineOglEnum(name, flags: untyped): untyped =
+    ## Create an enum and a toGlConst function
+    expectKind name, nnkIdent
+    result = newStmtList(createEnum(name, "", flags), createToGlProc(name, "", flags))
 
 
 defineOglEnum(OglFlag, Flag): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glEnable.xml
@@ -164,3 +165,8 @@ defineOglEnum(OglBlendFunc, Func):
     GL_CONSTANT_ALPHA
     GL_ONE_MINUS_CONSTANT_ALPHA
     GL_SRC_ALPHA_SATURATE
+
+defineOglEnum(OglShaderType):
+    GL_VERTEX_SHADER
+    GL_FRAGMENT_SHADER
+

@@ -1,10 +1,9 @@
-import opengl, safegl, options
+import opengl, safegl
 
 proc typeCheckMe() =
     let program = createProgram([
-        ShaderType.Vertex: some("""
-        """),
-        ShaderType.Fragment: none(string)
+        OglShaderType.VertexShader: @[ "" ],
+        OglShaderType.FragmentShader: @[]
     ])
 
     program.use

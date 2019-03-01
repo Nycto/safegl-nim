@@ -1,1 +1,3 @@
-include safegl/init, safegl/shaders, safegl/vectors
+import safegl / [ enums, init, shaders, vectors ]
+
+export enums, init, shaders, vectors
