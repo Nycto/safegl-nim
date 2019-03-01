@@ -72,6 +72,9 @@ proc createProgram*(shaders: array[OglShaderType, seq[string]]): ShaderProgram =
 
     result = createProgram(shaderIds)
 
+    for shaderId in shaderIds:
+        shaderId.destroy
+
 template use*(program: ShaderProgram) =
     ## Uses a specific program
     glUseProgram(GLuint(program.programId))
