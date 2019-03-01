@@ -4,8 +4,8 @@ proc enumFlag(glConst: NimNode, suffix: string): NimNode =
     ## Convert an opengl constant to a Nim constant
     var parts = glConst.strVal.split('_')
     parts.add(suffix)
+    parts.delete(0)
     var asString = parts.mapIt(it.toLowerAscii.capitalizeAscii).join()
-    asString.removePrefix("Gl")
     result = ident(asString)
 
 proc createEnum(name: NimNode, suffix: string, flags: NimNode): NimNode =
@@ -169,4 +169,13 @@ defineOglEnum(OglBlendFunc, Func):
 defineOglEnum(OglShaderType):
     GL_VERTEX_SHADER
     GL_FRAGMENT_SHADER
+
+defineOglEnum(OglVertexType, Type):
+    cGL_BYTE
+    cGL_UNSIGNED_BYTE
+    cGL_SHORT
+    cGL_UNSIGNED_SHORT
+    cGL_INT
+    cGL_FLOAT
+    cGL_DOUBLE
 

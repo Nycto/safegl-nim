@@ -78,8 +78,11 @@ template gameLoop*(code: untyped) =
 # A basic vertex shader that just forwards the vector position
 const vertexShader = """
 #version 300 es
-layout (location = 0) in mediump vec3 position;
+layout(location = 0) in mediump vec3 position;
+layout(location = 1) in lowp vec4 in_color;
+out vec4 color;
 void main() {
+    color = in_color;
    gl_Position = vec4(position, 1.0);
 }
 """
@@ -87,17 +90,28 @@ void main() {
 # A basic fragment shader that sets the color to orange
 const fragmentShader = """
 #version 300 es
-out lowp vec4 FragColor;
+layout(location = 0) out lowp vec4 frag_color;
+in lowp vec4 color;
 void main() {
-   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+   frag_color = color;
 }
 """
 
+type MyVertex = object ## An object to represent each vertex
+    position: GLvectorf3
+    color: Glvectorf4
+
+# Define the 'shape' of the data described by the vertex object
+let vertexShape = defineVertexShape[MyVertex](
+    attrib(3, OglVertexType.FloatType),
+    attrib(4, OglVertexType.FloatType),
+)
+
 # Vertices of a triangle
-var vertices = [
-    -0.5.GLfloat, -0.5.GLfloat, 0.0.GLfloat, # left
-    0.5.GLfloat, -0.5.GLfloat, 0.0.GLfloat,  # right
-    0.0.GLfloat,  0.5.GLfloat, 0.0.GLfloat  # top
+let vertices = [
+    MyVertex(position: [-0.5, -0.5, 0.0 ], color: [ 1.0, 0.0, 0.0, 1.0 ]),  # left
+    MyVertex(position: [0.5, -0.5, 0.0  ], color: [ 0.0, 1.0, 0.0, 1.0 ]),  # right
+    MyVertex(position: [0.0,  0.5, 0.0  ], color: [ 0.0, 0.0, 1.0, 1.0 ]),  # top
 ]
 
 initialize(window):
@@ -105,24 +119,7 @@ initialize(window):
     # Build and compile our shader program
     let program = createProgram(vertexShader, fragmentShader)
 
-    # Create a vertex array to store the vertices and their data shape
-    var vao: GLuint
-    glGenVertexArrays(1, addr vao)
-    glBindVertexArray(vao)
-
-    # Create a buffer and load in the vertices
-    var vbo: GLuint
-    glGenBuffers(1, addr vbo)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), addr vertices, GL_STATIC_DRAW)
-
-    # Define the shape of the vertex data
-    glVertexAttribPointer(0, 3, cGL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), cast[Glvoid](0))
-    glEnableVertexAttribArray(0)
-
-    # Unbind the buffers as a good habit
-    glBindBuffer(GL_ARRAY_BUFFER, 0)
-    glBindVertexArray(0)
+    let vao = vertexShape.newVertexArray(vertices)
 
     gameLoop:
         # Reset the scene
@@ -131,8 +128,7 @@ initialize(window):
 
         # Draw the triangle
         program.use
-        glBindVertexArray(vao)
-        glDrawArrays(GL_TRIANGLES, 0, 3)
+        vao.draw
 
         # Swap in the new rendering
         window.glSwapWindow()

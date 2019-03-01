@@ -1,3 +1,3 @@
-import safegl / [ enums, init, shaders, vectors ]
+import safegl / [ enums, init, shaders, vertex, vectors ]
 
-export enums, init, shaders, vectors
+export enums, init, shaders, vertex, vectors
