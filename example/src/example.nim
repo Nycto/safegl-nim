@@ -75,49 +75,6 @@ template gameLoop*(code: untyped) =
                     break endGame
             code
 
-template getShaderError(id: GLuint, ivFn, logFn: untyped): string =
-    ## Returns the error message associated with an operation
-    var logSize: GLint
-    ivFn(GLuint(id), GL_INFO_LOG_LENGTH, logSize.addr)
-    var logStr = cast[ptr GLchar](alloc(logSize))
-    defer: dealloc(logStr)
-    logFn(GLuint(id), logSize.GLsizei, nil, logStr)
-    $logStr
-
-template isShaderValid(id: GLuint, ivFn: untyped, statusConst: typed): bool =
-    ## Checks a status function for failure
-    var status: GLint
-    ivFn(id, statusConst, status.addr)
-    status.bool
-
-proc createShader(shaderType: GLenum, source: string): GLuint =
-    ## Define a shader
-    let shaderCString = allocCStringArray([source])
-    defer: deallocCStringArray(shaderCString)
-    result = glCreateShader(shaderType)
-    glShaderSource(result, 1, shaderCString, nil)
-    glCompileShader(result)
-
-    if not isShaderValid(result, glGetShaderiv, GL_COMPILE_STATUS):
-        let error = getShaderError(result, glGetShaderiv, glGetShaderInfoLog)
-        raise AssertionError.newException("Shader compilation failed: " & error)
-
-proc createProgram*(vertShader, fragShader: string): GLuint =
-    ## Creates a shader program
-    let vertexShader = GL_VERTEX_SHADER.createShader(vertShader)
-    let fragmentShader = GL_FRAGMENT_SHADER.createShader(fragShader)
-
-    result = glCreateProgram()
-    glAttachShader(result, vertexShader)
-    glAttachShader(result, fragmentShader)
-    glLinkProgram(result)
-    glDeleteShader(vertexShader)
-    glDeleteShader(fragmentShader)
-
-    if not result.isShaderValid(glGetProgramiv, GL_LINK_STATUS):
-        let error = getShaderError(result, glGetProgramiv, glGetProgramInfoLog)
-        raise AssertionError.newException("Shader linking failed: " & error)
-
 # A basic vertex shader that just forwards the vector position
 const vertexShader = """
 #version 300 es
@@ -173,7 +130,7 @@ initialize(window):
         glClear(GL_COLOR_BUFFER_BIT)
 
         # Draw the triangle
-        glUseProgram(program)
+        program.use
         glBindVertexArray(vao)
         glDrawArrays(GL_TRIANGLES, 0, 3)
 

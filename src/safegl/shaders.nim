@@ -75,6 +75,9 @@ proc createProgram*(shaders: array[OglShaderType, seq[string]]): ShaderProgram =
     for shaderId in shaderIds:
         shaderId.destroy
 
+proc createProgram*(vertexShader, fragmentShader: string): ShaderProgram =
+    createProgram([ OglShaderType.VertexShader: @[ vertexShader ], OglShaderType.FragmentShader: @[ fragmentShader ] ])
+
 template use*(program: ShaderProgram) =
     ## Uses a specific program
     glUseProgram(GLuint(program.programId))
