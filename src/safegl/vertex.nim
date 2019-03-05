@@ -1,4 +1,4 @@
-import enums, opengl, sequtils, macros, strutils
+import enums, opengl, sequtils, macros, strutils, private/reflection
 
 type
     OglVertexAttrib* = object ## An individual attribute for a vertex
@@ -55,16 +55,8 @@ proc asAttribType(typename: NimNode): OglAttribType =
         )
         low(OglAttribType)
 
-proc getRangeSize(range: NimNode): GLint =
-    ## Given a range node (0..2, for example), return how big it is
-    expectKind range, nnkInfix
-    assert(range[0].strVal == "..")
-    expectKind range[1], nnkIntLit
-    expectKind range[2], nnkIntLit
-    result = GLint(range[2].intVal - range[1].intVal + 1)
-
 proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglAttribType] =
-    ## Given atype name, returns data for constructing an OglVertexAttrib
+    ## Given a type name, returns data for constructing an OglVertexAttrib
 
     # This will de-obfuscate the GL type aliases back to arrays
     let dealiased = typename.getTypeImpl
@@ -76,7 +68,7 @@ proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglAttribTy
 
         # Recursively determine the type of values in this array
         let nested = dealiased[2].getAttribInfo
-        result.count = dealiased[1].getRangeSize * nested.count
+        result.count = GLint(dealiased[1].getRangeSize) * nested.count
         result.dataType = nested.dataType
 
     else:
@@ -85,20 +77,15 @@ proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglAttribTy
 
 macro getTypeShape(struct: typed): untyped =
     ## Constructs a sequence of OglVertexAttrib shapes based on a type name
-    let declaration = getTypeImpl(struct)[1].getTypeImpl
-    expectKind declaration, nnkObjectTy
 
     var attribs = nnkBracket.newTree()
 
-    for field in declaration[2].children:
-        expectKind field, nnkIdentDefs
-        expectKind field[0], nnkSym
-
-        let (count, dataType) = getAttribInfo(field[1])
+    for field, typeinfo in objFields(struct):
+        let (count, dataType) = getAttribInfo(typeinfo)
 
         attribs.add(nnkObjConstr.newTree(
             ident("OglVertexAttrib"),
-            newColonExpr(ident("name"), field[0].toStrLit),
+            newColonExpr(ident("name"), newLit(field)),
             newColonExpr(ident("count"), newLit(count)),
             newColonExpr(ident("dataType"), newDotExpr(ident("OglAttribType"), ident($dataType))),
         ))
