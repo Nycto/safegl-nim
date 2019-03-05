@@ -102,10 +102,7 @@ type MyVertex = object ## An object to represent each vertex
     color: Glvectorf4
 
 # Define the 'shape' of the data described by the vertex object
-let vertexShape = defineVertexShape[MyVertex](
-    attrib(3, OglVertexType.FloatType),
-    attrib(4, OglVertexType.FloatType),
-)
+let vertexShape = defineVertexShape(MyVertex)
 
 # Vertices of a triangle
 let vertices = [

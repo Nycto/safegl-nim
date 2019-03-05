@@ -1,13 +1,25 @@
-import opengl, safegl
+import opengl, safegl, unittest
 
 type MyVertex = object
+    value: GLint
     position: GLvectorf3
     color: GLvectorf4
+    grid: GLmatrixd4
+    nested: array[3, array[4, array[5, array[6, GLint]]]]
 
-let vertexShape = defineVertexShape[MyVertex](
-    attrib(3, OglVertexType.FloatType),
-    attrib(4, OglVertexType.FloatType),
-)
+
+let vertexShape: OglVertexShape[MyVertex] = defineVertexShape(MyVertex)
+
+suite "Vertex shapes":
+    test "Scan an object to determine its vertex shape":
+        check($vertexShape ==
+            "VertexShape(" &
+                "value: IntType * 1, " &
+                "position: FloatType * 3, " &
+                "color: FloatType * 4, " &
+                "grid: DoubleType * 16, " &
+                "nested: IntType * 360)")
+
 
 proc typeCheckMe() =
 
@@ -77,7 +89,5 @@ proc typeCheckMe() =
     ])
 
     vao.draw
-
-
 
 

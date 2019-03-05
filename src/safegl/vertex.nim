@@ -1,35 +1,113 @@
-import enums, opengl, sequtils
+import enums, opengl, sequtils, macros, strutils
 
 type
     OglVertexAttrib* = object ## An individual attribute for a vertex
+        name: string ## The name of this field
         count: GLint ## The number of values being passed
-        dataType: OglVertexType ## The data type
+        dataType: OglAttribType ## The data type
 
     OglVertexShape*[T] = object ## The shape of the arguments for a vertex
         attribs: seq[OglVertexAttrib]
 
-    OglVertexArrayId* = distinct GLuint
+    OglVertexArrayId = distinct GLuint
 
-    OglVertexBufferId* = distinct GLuint
+    OglVertexBufferId = distinct GLuint
 
     OglVertexArray* = object
         id: OglVertexArrayId
         buffers: seq[OglVertexBufferId]
         vertexCount: int
 
-proc size(dataType: OglVertexType): int =
-    case dataType
-    of OglVertexType.ByteType: sizeof(GLbyte)
-    of OglVertexType.UnsignedByteType: sizeof(GLubyte)
-    of OglVertexType.ShortType: sizeof(GLshort)
-    of OglVertexType.UnsignedShortType: sizeof(GLushort)
-    of OglVertexType.IntType: sizeof(GLint)
-    of OglVertexType.FloatType: sizeof(GLfloat)
-    of OglVertexType.DoubleType: sizeof(GLdouble)
+proc `$`(attrib: OglVertexAttrib): string =
+    ## Convert an attrib to a string
+    result = attrib.name & ": " & $attrib.dataType & " * " & $attrib.count
 
-proc defineVertexShape*[T](attribs: varargs[OglVertexAttrib]): OglVertexShape[T] =
+proc `$`*[T](shape: OglVertexShape[T]): string =
+    ## Convert a shape to a string
+    result = "VertexShape(" & shape.attribs.mapIt($it).join(", ") & ")"
+
+proc size(dataType: OglAttribType): int =
+    ## Returns the size of an attribute data type
+    case dataType
+    of OglAttribType.ByteType: sizeof(GLbyte)
+    of OglAttribType.UnsignedByteType: sizeof(GLubyte)
+    of OglAttribType.ShortType: sizeof(GLshort)
+    of OglAttribType.UnsignedShortType: sizeof(GLushort)
+    of OglAttribType.IntType: sizeof(GLint)
+    of OglAttribType.FloatType: sizeof(GLfloat)
+    of OglAttribType.DoubleType: sizeof(GLdouble)
+
+proc asAttribType(typename: NimNode): OglAttribType =
+    ## Converts a type declaration to an OglAttribType
+    case typename.strVal.toLowerAscii
+    of "glbyte": OglAttribType.ByteType
+    of "glubyte": OglAttribType.UnsignedByteType
+    of "glshort": OglAttribType.ShortType
+    of "glushort": OglAttribType.UnsignedShortType
+    of "glint": OglAttribType.IntType
+    of "glfloat": OglAttribType.FloatType
+    of "gldouble": OglAttribType.DoubleType
+    else:
+        error(
+            "Could not determine vertex attribute type for: " & typename.strVal &
+            " (Make sure you're using the GL types, for example GLint or GLfloat)",
+            typename
+        )
+        low(OglAttribType)
+
+proc getRangeSize(range: NimNode): GLint =
+    ## Given a range node (0..2, for example), return how big it is
+    expectKind range, nnkInfix
+    assert(range[0].strVal == "..")
+    expectKind range[1], nnkIntLit
+    expectKind range[2], nnkIntLit
+    result = GLint(range[2].intVal - range[1].intVal + 1)
+
+proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglAttribType] =
+    ## Given atype name, returns data for constructing an OglVertexAttrib
+
+    # This will de-obfuscate the GL type aliases back to arrays
+    let dealiased = typename.getTypeImpl
+
+    # If we are dealing with an array:
+    if dealiased.kind == nnkBracketExpr:
+        expectKind dealiased[0], nnkSym
+        assert(dealiased[0].strVal == "array")
+
+        # Recursively determine the type of values in this array
+        let nested = dealiased[2].getAttribInfo
+        result.count = dealiased[1].getRangeSize * nested.count
+        result.dataType = nested.dataType
+
+    else:
+        result.count = 1
+        result.dataType = typename.asAttribType
+
+macro getTypeShape(struct: typed): untyped =
+    ## Constructs a sequence of OglVertexAttrib shapes based on a type name
+    let declaration = getTypeImpl(struct)[1].getTypeImpl
+    expectKind declaration, nnkObjectTy
+
+    var attribs = nnkBracket.newTree()
+
+    for field in declaration[2].children:
+        expectKind field, nnkIdentDefs
+        expectKind field[0], nnkSym
+
+        let (count, dataType) = getAttribInfo(field[1])
+
+        attribs.add(nnkObjConstr.newTree(
+            ident("OglVertexAttrib"),
+            newColonExpr(ident("name"), field[0].toStrLit),
+            newColonExpr(ident("count"), newLit(count)),
+            newColonExpr(ident("dataType"), newDotExpr(ident("OglAttribType"), ident($dataType))),
+        ))
+
+    result = prefix(attribs, "@")
+
+proc defineVertexShape*(shape: typedesc): OglVertexShape[shape] =
     ## Defines the shape of the data being passed to the shaders
-    result.attribs.add(attribs)
+    result.attribs = getTypeShape(shape)
 
 proc send[T](shape: OglVertexShape[T]) =
     ## Sends a vertex shape over to opengl
@@ -45,11 +123,6 @@ proc send[T](shape: OglVertexShape[T]) =
         glEnableVertexAttribArray(i.GLuint)
 
         offset += attrib.count * attrib.dataType.size
-
-proc attrib*(count: static[int], dataType: static[OglVertexType]): OglVertexAttrib =
-    ## Defines the shape of the data being passed to the shaders
-    result.count = count.GLint
-    result.dataType = dataType
 
 proc genVertexArray(): OglVertexArrayId =
     ## Creates a vertex array

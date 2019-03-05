@@ -177,7 +177,7 @@ defineOglEnum(OglShaderType, GlEnum):
     GL_VERTEX_SHADER
     GL_FRAGMENT_SHADER
 
-defineOglEnum(OglVertexType, Type, GlEnum):
+defineOglEnum(OglAttribType, Type, GlEnum):
     cGL_BYTE
     cGL_UNSIGNED_BYTE
     cGL_SHORT
