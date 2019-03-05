@@ -4,7 +4,7 @@ type
     OglVertexAttrib* = object ## An individual attribute for a vertex
         name: string ## The name of this field
         count: GLint ## The number of values being passed
-        dataType: OglAttribType ## The data type
+        dataType: OglType ## The data type
 
     OglVertexShape*[T] = object ## The shape of the arguments for a vertex
         attribs: seq[OglVertexAttrib]
@@ -26,36 +26,36 @@ proc `$`*[T](shape: OglVertexShape[T]): string =
     ## Convert a shape to a string
     result = "VertexShape(" & shape.attribs.mapIt($it).join(", ") & ")"
 
-proc size(dataType: OglAttribType): int =
+proc size(dataType: OglType): int =
     ## Returns the size of an attribute data type
     case dataType
-    of OglAttribType.ByteType: sizeof(GLbyte)
-    of OglAttribType.UnsignedByteType: sizeof(GLubyte)
-    of OglAttribType.ShortType: sizeof(GLshort)
-    of OglAttribType.UnsignedShortType: sizeof(GLushort)
-    of OglAttribType.IntType: sizeof(GLint)
-    of OglAttribType.FloatType: sizeof(GLfloat)
-    of OglAttribType.DoubleType: sizeof(GLdouble)
+    of OglType.ByteType: sizeof(GLbyte)
+    of OglType.UnsignedByteType: sizeof(GLubyte)
+    of OglType.ShortType: sizeof(GLshort)
+    of OglType.UnsignedShortType: sizeof(GLushort)
+    of OglType.IntType: sizeof(GLint)
+    of OglType.FloatType: sizeof(GLfloat)
+    of OglType.DoubleType: sizeof(GLdouble)
 
-proc asAttribType(typename: NimNode): OglAttribType =
-    ## Converts a type declaration to an OglAttribType
+proc asAttribType(typename: NimNode): OglType =
+    ## Converts a type declaration to an OglType
     case typename.strVal.toLowerAscii
-    of "glbyte": OglAttribType.ByteType
-    of "glubyte": OglAttribType.UnsignedByteType
-    of "glshort": OglAttribType.ShortType
-    of "glushort": OglAttribType.UnsignedShortType
-    of "glint": OglAttribType.IntType
-    of "glfloat": OglAttribType.FloatType
-    of "gldouble": OglAttribType.DoubleType
+    of "glbyte": OglType.ByteType
+    of "glubyte": OglType.UnsignedByteType
+    of "glshort": OglType.ShortType
+    of "glushort": OglType.UnsignedShortType
+    of "glint": OglType.IntType
+    of "glfloat": OglType.FloatType
+    of "gldouble": OglType.DoubleType
     else:
         error(
             "Could not determine vertex attribute type for: " & typename.strVal &
             " (Make sure you're using the GL types, for example GLint or GLfloat)",
             typename
         )
-        low(OglAttribType)
+        low(OglType)
 
-proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglAttribType] =
+proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglType] =
     ## Given a type name, returns data for constructing an OglVertexAttrib
 
     # This will de-obfuscate the GL type aliases back to arrays
@@ -87,7 +87,7 @@ macro getTypeShape(struct: typed): untyped =
             ident("OglVertexAttrib"),
             newColonExpr(ident("name"), newLit(field)),
             newColonExpr(ident("count"), newLit(count)),
-            newColonExpr(ident("dataType"), newDotExpr(ident("OglAttribType"), ident($dataType))),
+            newColonExpr(ident("dataType"), newDotExpr(ident("OglType"), ident($dataType))),
         ))
 
     result = prefix(attribs, "@")
