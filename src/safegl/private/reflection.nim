@@ -12,11 +12,3 @@ iterator objFields*(struct: NimNode): tuple[field: string, typeinfo: NimNode] =
 
         yield (field[0].strVal, field[1])
 
-proc getRangeSize*(range: NimNode): BiggestInt =
-    ## Given a range node (0..2, for example), return how big it is
-    expectKind range, nnkInfix
-    assert(range[0].strVal == "..")
-    expectKind range[1], nnkIntLit
-    expectKind range[2], nnkIntLit
-    result = range[2].intVal - range[1].intVal + 1
-

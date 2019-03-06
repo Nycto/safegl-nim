@@ -26,39 +26,18 @@ proc `$`*[T](shape: OglVertexShape[T]): string =
     ## Convert a shape to a string
     result = "VertexShape(" & shape.attribs.mapIt($it).join(", ") & ")"
 
-proc getAttribInfo(typename: NimNode): tuple[count: GLint, dataType: OglType] =
-    ## Given a type name, returns data for constructing an OglVertexAttrib
-
-    # This will de-obfuscate the GL type aliases back to arrays
-    let dealiased = typename.getTypeImpl
-
-    # If we are dealing with an array:
-    if dealiased.kind == nnkBracketExpr:
-        expectKind dealiased[0], nnkSym
-        assert(dealiased[0].strVal == "array")
-
-        # Recursively determine the type of values in this array
-        let nested = dealiased[2].getAttribInfo
-        result.count = GLint(dealiased[1].getRangeSize) * nested.count
-        result.dataType = nested.dataType
-
-    else:
-        result.count = 1
-        result.dataType = typename.asType
-
 macro getTypeShape(struct: typed): untyped =
     ## Constructs a sequence of OglVertexAttrib shapes based on a type name
 
     var attribs = nnkBracket.newTree()
 
     for field, typeinfo in objFields(struct):
-        let (count, dataType) = getAttribInfo(typeinfo)
-
+        let disectedType = typeinfo.disect
         attribs.add(nnkObjConstr.newTree(
             ident("OglVertexAttrib"),
             newColonExpr(ident("name"), newLit(field)),
-            newColonExpr(ident("count"), newLit(count)),
-            newColonExpr(ident("dataType"), newDotExpr(ident("OglType"), ident($dataType))),
+            newColonExpr(ident("count"), newLit(disectedType.totalCount.GLint)),
+            newColonExpr(ident("dataType"), newDotExpr(ident("OglType"), ident($disectedType.coreType))),
         ))
 
     result = prefix(attribs, "@")

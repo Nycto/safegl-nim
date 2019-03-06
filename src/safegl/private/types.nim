@@ -1,5 +1,18 @@
 import ../enums, opengl, macros, strutils
 
+type
+    TypeKind* = enum
+        Primitive,
+        Array
+
+    TypeStructure* = ref object
+        case kind: TypeKind
+        of TypeKind.Primitive:
+            dataType: OglType
+        of TypeKind.Array:
+            count: BiggestInt
+            nested: TypeStructure
+
 proc size*(dataType: OglType): int =
     ## Returns the size of an attribute data type
     case dataType
@@ -28,3 +41,38 @@ proc asType*(typename: NimNode): OglType =
             typename
         )
         low(OglType)
+
+proc getRangeSize*(range: NimNode): BiggestInt =
+    ## Given a range node (0..2, for example), return how big it is
+    expectKind range, nnkInfix
+    assert(range[0].strVal == "..")
+    expectKind range[1], nnkIntLit
+    expectKind range[2], nnkIntLit
+    result = range[2].intVal - range[1].intVal + 1
+
+proc disect*(typename: NimNode): TypeStructure =
+    ## Given type information, returns the number of fields as well as their type
+
+    # This will de-obfuscate the GL type aliases back to arrays
+    let dealiased = typename.getTypeImpl
+
+    # If we are dealing with an array, recurse into the values it contains
+    return if dealiased.kind == nnkBracketExpr:
+        expectKind dealiased[0], nnkSym
+        assert(dealiased[0].strVal == "array")
+        TypeStructure(kind: TypeKind.Array, count: dealiased[1].getRangeSize, nested: dealiased[2].disect)
+    else:
+        TypeStructure(kind: TypeKind.Primitive, dataType: typename.asType)
+
+proc totalCount*(structure: TypeStructure): BiggestInt =
+    ## Returns the total count of values in a type structure
+    case structure.kind:
+    of TypeKind.Primitive: BiggestInt(1)
+    of TypeKind.Array: structure.count * structure.nested.totalCount
+
+proc coreType*(structure: TypeStructure): OglType =
+    ## Returns the core type represented by a type structure
+    case structure.kind:
+    of TypeKind.Primitive: structure.dataType
+    of TypeKind.Array: structure.nested.coreType
+
