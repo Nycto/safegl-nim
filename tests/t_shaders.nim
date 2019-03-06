@@ -1,5 +1,9 @@
 import opengl, safegl
 
+type MyVertex = object
+    position: GLvectorf3
+    color: GLvectorf4
+
 type MyUniforms = object ## An object to describe the uniform inputs to a shader program
     myGlInt: GLint
     myGlFloat: GLfloat
@@ -22,7 +26,7 @@ type MyUniforms = object ## An object to describe the uniform inputs to a shader
     myGlMatrixf4: GLmatrixf4
 
 proc typeCheckMe() =
-    let program = createProgram[MyUniforms]([
+    let program = createProgram[MyUniforms, MyVertex]([
         OglShaderType.VertexShader: @[ "" ],
         OglShaderType.FragmentShader: @[]
     ])

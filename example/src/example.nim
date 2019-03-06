@@ -118,7 +118,7 @@ type MyUniforms = object ## An object to describe the uniform inputs to a shader
 initialize(window):
 
     # Build and compile our shader program
-    let program = createProgram[MyUniforms](vertexShader, fragmentShader)
+    let program = createProgram[MyUniforms, MyVertex](vertexShader, fragmentShader)
 
     let vao = vertexShape.newVertexArray(vertices)
 
@@ -133,8 +133,7 @@ initialize(window):
         clear()
 
         # Draw the triangle
-        program.use(uniforms)
-        vao.draw
+        program.draw(uniforms, vao)
 
         # Swap in the new rendering
         window.glSwapWindow()

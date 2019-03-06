@@ -13,7 +13,7 @@ type
 
     OglVertexBufferId = distinct GLuint
 
-    OglVertexArray* = object
+    OglVertexArray*[T] = object
         id: OglVertexArrayId
         buffers: seq[OglVertexBufferId]
         vertexCount: int
@@ -83,7 +83,7 @@ proc bindBuffer(id: OglVertexBufferId): OglVertexBufferId =
     glBindBuffer(GL_ARRAY_BUFFER, id.GLuint)
     result = id
 
-proc newVertexArray*[T](shape: OglVertexShape[T], vertices: openarray[T]): OglVertexArray =
+proc newVertexArray*[T](shape: OglVertexShape[T], vertices: openarray[T]): OglVertexArray[T] =
     ## Creates a vertex array instance
     result.id = genVertexArray().bindArray()
     result.buffers.add(genVertexBuffer().bindBuffer())
@@ -96,7 +96,7 @@ proc newVertexArray*[T](shape: OglVertexShape[T], vertices: openarray[T]): OglVe
     glBindBuffer(GL_ARRAY_BUFFER, 0)
     glBindVertexArray(0)
 
-template draw*(self: OglVertexArray) =
+template draw*[T](self: OglVertexArray[T]) =
     ## Draws a vertex array
     glBindVertexArray(self.id.GLuint)
     glDrawArrays(GL_TRIANGLES, 0, self.vertexCount.GLsizei)

@@ -1,4 +1,4 @@
-import opengl, enums, private/uniforms
+import opengl, enums, private/uniforms, vertex
 
 type
     ShaderError* = object of Defect ## Unrecoverable errors in a shader
@@ -7,7 +7,7 @@ type
 
     ShaderProgramId* = distinct GLuint ## Identifies a program of shaders
 
-    ShaderProgram*[T: object] = object ## A shader program and the associated shader IDs
+    ShaderProgram*[U: object, V: object] = object ## A shader program and the associated shader IDs
         shaders: seq[ShaderId]
         programId: ShaderProgramId
 
@@ -48,7 +48,7 @@ proc destroy*(shaderId: ShaderId) =
     ## Destroys ashader
     glDeleteShader(GLuint(shaderId))
 
-proc createProgram*[T: object](shaderIds: varargs[ShaderId]): ShaderProgram[T] =
+proc createProgram*[U: object, V: object](shaderIds: varargs[ShaderId]): ShaderProgram[U, V] =
     ## Creates a shader program
     let programId = glCreateProgram()
     result.programId = programId.ShaderProgramId
@@ -60,7 +60,7 @@ proc createProgram*[T: object](shaderIds: varargs[ShaderId]): ShaderProgram[T] =
     glLinkProgram(programId)
     assertSuccess(programId, glGetProgramiv, GL_LINK_STATUS, glGetProgramInfoLog, "Program linking failed: ")
 
-proc createProgram*[T: object](shaders: array[OglShaderType, seq[string]]): ShaderProgram[T] =
+proc createProgram*[U: object, V: object](shaders: array[OglShaderType, seq[string]]): ShaderProgram[U, V] =
     ## Creates a program out of a suite of shader sources
 
     var shaderIds: seq[ShaderId]
@@ -68,22 +68,27 @@ proc createProgram*[T: object](shaders: array[OglShaderType, seq[string]]): Shad
         for source in sources:
             shaderIds.add(shaderType.create(source))
 
-    result = createProgram[T](shaderIds)
+    result = createProgram[U, V](shaderIds)
 
     for shaderId in shaderIds:
         shaderId.destroy
 
-proc createProgram*[T: object](vertexShader, fragmentShader: string): ShaderProgram[T] =
-    createProgram[T]([
+proc createProgram*[U: object, V: object](vertexShader, fragmentShader: string): ShaderProgram[U, V] =
+    createProgram[U, V]([
         OglShaderType.VertexShader: @[ vertexShader ],
         OglShaderType.FragmentShader: @[ fragmentShader ]
     ])
 
-proc use*[T: object](program: ShaderProgram[T], uniforms: T) =
+proc use*[U: object, V: object](program: ShaderProgram[U, V], uniforms: U) =
     ## Uses a specific program
     glUseProgram(GLuint(program.programId))
+    setUniforms(U, GLuint(program.programId), uniforms)
 
-    setUniforms(T, GLuint(program.programId), uniforms)
+proc draw*[U: object, V: object](program: ShaderProgram[U, V], uniforms: U, models: varargs[OglVertexArray[V]]) =
+    ## Uses a specific program
+    program.use(uniforms)
+    for model in models:
+        model.draw
 
 template destroy*(program: ShaderProgram) =
     ## Uses a specific program
