@@ -1,0 +1,75 @@
+import opengl, macros, ../enums, types, reflection
+
+proc fnSuffix(dataType: OglType, sourceNode: NimNode): string =
+    ## Given an opengl type, returns the suffix to use for function calls
+    case dataType
+    of OglType.ByteType, OglType.ShortType, OglType.DoubleType, OglType.UnsignedByteType, OglType.UnsignedShortType:
+        error("Data type is not currently supported for uniforms: " & $dataType, sourceNode)
+        ""
+    of OglType.IntType: "i"
+    of OglType.FloatType: "f"
+
+proc setUniformPrimitive(typeinfo: TypeStructure, getUniformId: NimNode, value: NimNode): NimNode =
+    ## Creates a function call to set a uniform from a primitive
+    assert(typeinfo.kind == TypeKind.Primitive)
+    result = newCall(ident("glUniform1" & typeinfo.dataType.fnSuffix(value)), getUniformId, value)
+
+proc `[]`(a, b: NimNode): NimNode =
+    ## Produces a NimNode of a[b]
+    nnkBracketExpr.newTree(a, b)
+
+proc setUniformVector(typeinfo: TypeStructure, getUniformId: NimNode, value: NimNode): NimNode =
+    assert(typeinfo.category == TypeCategory.Vector)
+    assert(typeinfo.totalCount > 0 and typeinfo.totalCount <= 4)
+    let fn = "glUniform" & $typeinfo.totalCount & typeinfo.coreType.fnSuffix(value) & "v"
+    result = newCall(
+        ident(fn),
+        getUniformId,
+        newLit(1),
+        newCall("unsafeAddr", value[newLit(0)])
+    )
+
+proc setUniformMatrix(typeinfo: TypeStructure, getUniformId: NimNode, value: NimNode): NimNode =
+    assert(typeinfo.category == TypeCategory.Matrix)
+    assert(typeinfo.totalCount >= 4 and typeinfo.totalCount <= 16)
+    assert(typeinfo.coreType == OglType.FloatType)
+
+    let fnType =
+        if typeinfo.count == typeinfo.nested.count:
+            $typeinfo.count
+        else:
+            $typeinfo.nested.count & "x" & $typeinfo.count
+
+    result = newCall(
+        ident("glUniformMatrix" & fnType & "fv"),
+        getUniformId,
+        newLit(1),
+        ident("GL_TRUE"), # The matrices are in row major order
+        newCall("unsafeAddr", value[newLit(0)][newLit(0)])
+    )
+
+macro setUniforms*(shape, programId: typed, values: untyped): untyped =
+    ## Creates method calls for setting uniforms from a type
+    result = newStmtList()
+
+    for field, fieldtype in objFields(shape):
+        let getUniformId = newCall(ident("glGetUniformLocation"), programId, newLit(field))
+        let readField = newDotExpr(values, ident(field))
+
+        let typeinfo = fieldtype.disect
+
+        let setter =
+            case typeinfo.category
+            of TypeCategory.Primitive: setUniformPrimitive(typeinfo, getUniformId, readField)
+            of TypeCategory.Vector: setUniformVector(typeinfo, getUniformId, readField)
+            of TypeCategory.Matrix: setUniformMatrix(typeinfo, getUniformId, readField)
+            of TypeCategory.Other:
+                error(
+                    "Could not set uniform from type: " & fieldtype.strVal & ". " &
+                    "Make sure you're using the GL* types (For example, GLvectorf3)",
+                    fieldType
+                )
+                newStmtList()
+
+        result.add(setter)
+

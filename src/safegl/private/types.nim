@@ -1,17 +1,23 @@
 import ../enums, opengl, macros, strutils
 
 type
-    TypeKind* = enum
+    TypeKind* {.pure .} = enum ## For nested type structures, describes whether its a leaf or contains another array
         Primitive,
         Array
 
-    TypeStructure* = ref object
-        case kind: TypeKind
+    TypeStructure* = ref object ## Describes the types of data that can be passed to opengl
+        case kind*: TypeKind
         of TypeKind.Primitive:
-            dataType: OglType
+            dataType*: OglType
         of TypeKind.Array:
-            count: BiggestInt
-            nested: TypeStructure
+            count*: BiggestInt
+            nested*: TypeStructure
+
+    TypeCategory* {.pure .} = enum ## Whether a type structure is classified as a single value, a vector or a matrix
+        Primitive,
+        Vector,
+        Matrix,
+        Other
 
 proc size*(dataType: OglType): int =
     ## Returns the size of an attribute data type
@@ -75,4 +81,15 @@ proc coreType*(structure: TypeStructure): OglType =
     case structure.kind:
     of TypeKind.Primitive: structure.dataType
     of TypeKind.Array: structure.nested.coreType
+
+proc category*(structure: TypeStructure): TypeCategory =
+    ## Returns the type of value described by a structure
+    case structure.kind:
+    of TypeKind.Primitive:
+        TypeCategory.Primitive
+    of TypeKind.Array:
+        case structure.nested.category:
+        of TypeCategory.Primitive: TypeCategory.Vector
+        of TypeCategory.Vector: TypeCategory.Matrix
+        of TypeCategory.Matrix, TypeCategory.Other: TypeCategory.Other
 
