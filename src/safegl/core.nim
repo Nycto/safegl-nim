@@ -41,7 +41,7 @@ proc initOpenGl*(
         glEnable(flag.glEnum)
 
     glShadeModel(shadeModel.glEnum)
-    glClearDepth(clearDepth)
+    glClearDepthf(clearDepth)
     glDepthFunc(depthFunc.glEnum)
     glBlendFunc(sourceBlendFactor.glEnum, destinationBlendFactor.glEnum)
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
