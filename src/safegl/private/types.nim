@@ -1,4 +1,4 @@
-import ../enums, opengl, macros, strutils
+import ../enums, opengl, macros, strutils, sequtils, reflection
 
 type
     TypeKind* {.pure .} = enum ## For nested type structures, describes whether its a leaf or contains another array
@@ -13,11 +13,26 @@ type
             count*: BiggestInt
             nested*: TypeStructure
 
+    TypeField* = ref object ## Describes a field in an object
+        name*: string
+        structure*: TypeStructure
+
     TypeCategory* {.pure .} = enum ## Whether a type structure is classified as a single value, a vector or a matrix
         Primitive,
         Vector,
         Matrix,
         Other
+
+proc `$`*(self: TypeStructure): string =
+    ## Convert a type structure to a string
+    result =
+        case self.kind
+        of TypeKind.Primitive: $self.dataType
+        of TypeKind.Array: "Array[" & $self.count & ", " & $self.nested & "]"
+
+proc `$`*(self: TypeField): string =
+    ## Convert a type field to a string
+    result = self.name & ": " & $self.structure
 
 proc size*(dataType: OglType): int =
     ## Returns the size of an attribute data type
@@ -70,6 +85,11 @@ proc disect*(typename: NimNode): TypeStructure =
     else:
         TypeStructure(kind: TypeKind.Primitive, dataType: typename.asType)
 
+proc fields*(struct: NimNode): seq[TypeField] =
+    ## Creates code for generating TypeFields from a type
+    for field, typeinfo in objFields(struct):
+        result.add(TypeField(name: field, structure: typeinfo.disect))
+
 proc totalCount*(structure: TypeStructure): BiggestInt =
     ## Returns the total count of values in a type structure
     case structure.kind:
@@ -83,7 +103,7 @@ proc coreType*(structure: TypeStructure): OglType =
     of TypeKind.Array: structure.nested.coreType
 
 proc category*(structure: TypeStructure): TypeCategory =
-    ## Returns the type of value described by a structure
+    ## Returns the category of value described by a structure
     case structure.kind:
     of TypeKind.Primitive:
         TypeCategory.Primitive
@@ -92,4 +112,5 @@ proc category*(structure: TypeStructure): TypeCategory =
         of TypeCategory.Primitive: TypeCategory.Vector
         of TypeCategory.Vector: TypeCategory.Matrix
         of TypeCategory.Matrix, TypeCategory.Other: TypeCategory.Other
+
 

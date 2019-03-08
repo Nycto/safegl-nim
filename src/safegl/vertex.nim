@@ -31,13 +31,13 @@ macro getTypeShape(struct: typed): untyped =
 
     var attribs = nnkBracket.newTree()
 
-    for field, typeinfo in objFields(struct):
-        let disectedType = typeinfo.disect
+    for field in fields(struct):
+        let struct = field.structure
         attribs.add(nnkObjConstr.newTree(
             ident("OglVertexAttrib"),
-            newColonExpr(ident("name"), newLit(field)),
-            newColonExpr(ident("count"), newLit(disectedType.totalCount.GLint)),
-            newColonExpr(ident("dataType"), newDotExpr(ident("OglType"), ident($disectedType.coreType))),
+            newColonExpr(ident("name"), newLit(field.name)),
+            newColonExpr(ident("count"), newLit(struct.totalCount.GLint)),
+            newColonExpr(ident("dataType"), newDotExpr(ident("OglType"), ident($struct.coreType))),
         ))
 
     result = prefix(attribs, "@")
