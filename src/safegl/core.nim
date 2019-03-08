@@ -35,16 +35,22 @@ proc initOpenGl*(
     log("OpenGL shader version: " & $cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION)))
 
     for hint in OglHint:
-        glHint(hint.glEnum, hints[hint].glEnum)
+        if hints[hint] != OglHintMode.DontCareMode:
+            glHint(hint.glEnum, hints[hint].glEnum)
 
     for flag in flags:
         glEnable(flag.glEnum)
 
-    glShadeModel(shadeModel.glEnum)
+    when not defined(ios):
+        glShadeModel(shadeModel.glEnum)
+
     glClearDepthf(clearDepth)
     glDepthFunc(depthFunc.glEnum)
     glBlendFunc(sourceBlendFactor.glEnum, destinationBlendFactor.glEnum)
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
+
+    when defined(ios):
+        assert(screenSize.isSome)
 
     if screenSize.isSome:
         glViewport(0, 0, screenSize.get.width.GLsizei, screenSize.get.height.GLsizei)
