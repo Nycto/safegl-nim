@@ -52,16 +52,6 @@ proc createGlConstProc(name: NimNode, flags: NimNode): NimNode =
     let body = caseStmt(name, flags, ident("key")) do (flag: NimNode) -> NimNode: newLit(flag.strVal)
     result = newProc(postfix(ident("glConst"), "*"), [ ident("string"), newIdentDefs(ident("key"), name) ], body)
 
-#macro defineOglEnum(name, suffix, glType, flags: untyped): untyped =
-#    ## Create an enum and a toGlConst function
-#    expectKind name, nnkIdent
-#    expectKind suffix, nnkIdent
-#    expectKind glType, nnkIdent
-#    result = newStmtList(
-#        createEnum(name, suffix.strVal, flags),
-#        createToGlProc(name, suffix.strVal, glType, flags),
-#        createGlConstProc(name, suffix.strVal, flags))
-
 macro defineOglEnum(name, glType, flags: untyped): untyped =
     ## Create an enum and a toGlConst function
     expectKind name, nnkIdent
@@ -69,7 +59,6 @@ macro defineOglEnum(name, glType, flags: untyped): untyped =
         createEnum(name, flags),
         createToGlProc(name, glType, flags),
         createGlConstProc(name, flags))
-
 
 defineOglEnum(OglFlag, GlEnum): ## See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glEnable.xml
     GL_POINT_SMOOTH
