@@ -3,11 +3,11 @@ import opengl, macros, ../enums, types
 proc fnSuffix(dataType: OglType, sourceNode: NimNode): string =
     ## Given an opengl type, returns the suffix to use for function calls
     case dataType
-    of OglType.ByteType, OglType.ShortType, OglType.DoubleType, OglType.UnsignedByteType, OglType.UnsignedShortType:
+    of OglType.Byte, OglType.Short, OglType.Double, OglType.UnsignedByte, OglType.UnsignedShort:
         error("Data type is not currently supported for uniforms: " & $dataType, sourceNode)
         ""
-    of OglType.IntType: "i"
-    of OglType.FloatType: "f"
+    of OglType.Int: "i"
+    of OglType.Float: "f"
 
 proc setUniformPrimitive(typeinfo: TypeStructure, getUniformId: NimNode, value: NimNode): NimNode =
     ## Creates a function call to set a uniform from a primitive
@@ -32,7 +32,7 @@ proc setUniformVector(typeinfo: TypeStructure, getUniformId: NimNode, value: Nim
 proc setUniformMatrix(typeinfo: TypeStructure, getUniformId: NimNode, value: NimNode): NimNode =
     assert(typeinfo.category == TypeCategory.Matrix)
     assert(typeinfo.totalCount >= 4 and typeinfo.totalCount <= 16)
-    assert(typeinfo.coreType == OglType.FloatType)
+    assert(typeinfo.coreType == OglType.Float)
 
     let fnType =
         if typeinfo.count == typeinfo.nested.count:

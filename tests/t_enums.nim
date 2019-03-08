@@ -3,10 +3,10 @@ import opengl, safegl, unittest
 suite "Generated enums":
 
     test "Return their constant values":
-        check(OglFlag.PointSmoothFlag.glEnum == GL_POINT_SMOOTH)
-        check(OglType.FloatType.glEnum == cGL_FLOAT)
+        check(OglFlag.PointSmooth.glEnum == GL_POINT_SMOOTH)
+        check(OglType.Float.glEnum == cGL_FLOAT)
 
     test "Produce string versions":
-        check(OglFlag.PointSmoothFlag.glConst == "GL_POINT_SMOOTH")
-        check(OglType.FloatType.glConst == "cGL_FLOAT")
+        check(OglFlag.PointSmooth.glConst == "GL_POINT_SMOOTH")
+        check(OglType.Float.glConst == "cGL_FLOAT")
 

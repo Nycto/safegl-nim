@@ -4,7 +4,7 @@ import opengl, enums, options
 const defaultHints = block:
     var defaults: array[OglHint, OglHintMode]
     for hint in low(OglHint)..high(OglHint):
-        defaults[hint] = OglHintMode.DontCareMode
+        defaults[hint] = OglHintMode.DontCare
     defaults
 
 proc log(messages: string) =
@@ -16,11 +16,11 @@ proc initOpenGl*(
     hints: array[OglHint, OglHintMode] = defaultHints,
     flags: set[OglFlag] = {},
     clearDepth: float = 1.0,
-    depthFunc: OglDepthFunc = OglDepthFunc.LequalCmp,
+    depthFunc: OglDepthFunc = OglDepthFunc.Lequal,
     clearColor: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0),
-    shadeModel: OglShadeModel = OglShadeModel.SmoothModel,
-    sourceBlendFactor: OglBlendFunc = OglBlendFunc.SrcAlphaFunc,
-    destinationBlendFactor: OglBlendFunc = OglBlendFunc.OneMinusSrcAlphaFunc,
+    shadeModel: OglShadeModel = OglShadeModel.Smooth,
+    sourceBlendFactor: OglBlendFunc = OglBlendFunc.SrcAlpha,
+    destinationBlendFactor: OglBlendFunc = OglBlendFunc.OneMinusSrcAlpha,
     screenSize: Option[tuple[width, height: int]] = none(tuple[width, height: int])
 ) =
     ## Initializes OpenGL
@@ -35,7 +35,7 @@ proc initOpenGl*(
     log("OpenGL shader version: " & $cast[cstring](glGetString(GL_SHADING_LANGUAGE_VERSION)))
 
     for hint in OglHint:
-        if hints[hint] != OglHintMode.DontCareMode:
+        if hints[hint] != OglHintMode.DontCare:
             glHint(hint.glEnum, hints[hint].glEnum)
 
     for flag in flags:

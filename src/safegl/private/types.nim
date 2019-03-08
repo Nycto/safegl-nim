@@ -37,13 +37,13 @@ proc `$`*(self: TypeField): string =
 proc size*(dataType: OglType): int =
     ## Returns the size of an attribute data type
     case dataType
-    of OglType.ByteType: sizeof(GLbyte)
-    of OglType.UnsignedByteType: sizeof(GLubyte)
-    of OglType.ShortType: sizeof(GLshort)
-    of OglType.UnsignedShortType: sizeof(GLushort)
-    of OglType.IntType: sizeof(GLint)
-    of OglType.FloatType: sizeof(GLfloat)
-    of OglType.DoubleType: sizeof(GLdouble)
+    of OglType.Byte: sizeof(GLbyte)
+    of OglType.UnsignedByte: sizeof(GLubyte)
+    of OglType.Short: sizeof(GLshort)
+    of OglType.UnsignedShort: sizeof(GLushort)
+    of OglType.Int: sizeof(GLint)
+    of OglType.Float: sizeof(GLfloat)
+    of OglType.Double: sizeof(GLdouble)
 
 iterator objFields(struct: NimNode): tuple[field: string, typeinfo: NimNode] =
     ## Produces the fields in an object declaration
@@ -60,13 +60,13 @@ iterator objFields(struct: NimNode): tuple[field: string, typeinfo: NimNode] =
 proc asType(typename: NimNode): OglType =
     ## Converts a type declaration to an OglType
     case typename.strVal.toLowerAscii
-    of "glbyte": OglType.ByteType
-    of "glubyte": OglType.UnsignedByteType
-    of "glshort": OglType.ShortType
-    of "glushort": OglType.UnsignedShortType
-    of "glint": OglType.IntType
-    of "glfloat": OglType.FloatType
-    of "gldouble": OglType.DoubleType
+    of "glbyte": OglType.Byte
+    of "glubyte": OglType.UnsignedByte
+    of "glshort": OglType.Short
+    of "glushort": OglType.UnsignedShort
+    of "glint": OglType.Int
+    of "glfloat": OglType.Float
+    of "gldouble": OglType.Double
     else:
         error(
             "Could not determine vertex attribute type for: " & typename.strVal &
