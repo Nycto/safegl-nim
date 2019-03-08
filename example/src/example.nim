@@ -102,9 +102,6 @@ type MyVertex = object ## An object to represent each vertex
     position: GLvectorf3
     color: Glvectorf4
 
-# Define the 'shape' of the data described by the vertex object
-let vertexShape = defineVertexShape(MyVertex)
-
 # Vertices of a triangle
 let vertices = [
     MyVertex(position: [-0.5, -0.5, 0.0 ], color: [ 1.0, 0.0, 0.0, 1.0 ]),  # left
@@ -120,7 +117,7 @@ initialize(window):
     # Build and compile our shader program
     let program = createProgram[MyUniforms, MyVertex](vertexShader, fragmentShader)
 
-    let vao = vertexShape.newVertexArray(vertices)
+    let vao = newVertexArray(vertices)
 
     let start = epochTime()
 

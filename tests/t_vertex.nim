@@ -7,20 +7,6 @@ type MyVertex = object
     grid: GLmatrixd4
     nested: array[3, array[4, array[5, array[6, GLint]]]]
 
-
-let vertexShape: OglVertexShape[MyVertex] = defineVertexShape(MyVertex)
-
-suite "Vertex shapes":
-    test "Scan an object to determine its vertex shape":
-        check($vertexShape ==
-            "VertexShape(" &
-                "value: IntType * 1, " &
-                "position: FloatType * 3, " &
-                "color: FloatType * 4, " &
-                "grid: DoubleType * 16, " &
-                "nested: IntType * 360)")
-
-
 proc typeCheckMe() =
 
     let blue = [0.0,  0.0, 1.0, 1.0]
@@ -32,7 +18,7 @@ proc typeCheckMe() =
     let cyan = [0.0, 1.0, 1.0, 1.0]
     let yellow = [1.0, 1.0, 0.0, 1.0]
 
-    let vao = vertexShape.newVertexArray([
+    let vao = newVertexArray([
         # vertices for the front face of the cube
         MyVertex(position: [-0.5, -0.5, 0.5],     color: blue),
         MyVertex(position: [0.5, -0.5, 0.5],      color: purple),
