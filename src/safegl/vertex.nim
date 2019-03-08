@@ -1,4 +1,4 @@
-import enums, opengl, sequtils, macros, strutils, private/reflection, private/types
+import enums, opengl, sequtils, macros, strutils, private/types
 
 type
     OglVertexArrayId = distinct GLuint

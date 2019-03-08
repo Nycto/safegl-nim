@@ -1,4 +1,4 @@
-import ../enums, opengl, macros, strutils, sequtils, reflection
+import ../enums, opengl, macros, strutils, sequtils
 
 type
     TypeKind* {.pure .} = enum ## For nested type structures, describes whether its a leaf or contains another array
@@ -45,7 +45,19 @@ proc size*(dataType: OglType): int =
     of OglType.FloatType: sizeof(GLfloat)
     of OglType.DoubleType: sizeof(GLdouble)
 
-proc asType*(typename: NimNode): OglType =
+iterator objFields(struct: NimNode): tuple[field: string, typeinfo: NimNode] =
+    ## Produces the fields in an object declaration
+
+    let declaration = getTypeImpl(struct)[1].getTypeImpl
+    expectKind declaration, nnkObjectTy
+
+    for field in declaration[2].children:
+        expectKind field, nnkIdentDefs
+        expectKind field[0], nnkSym
+
+        yield (field[0].strVal, field[1])
+
+proc asType(typename: NimNode): OglType =
     ## Converts a type declaration to an OglType
     case typename.strVal.toLowerAscii
     of "glbyte": OglType.ByteType
@@ -63,7 +75,7 @@ proc asType*(typename: NimNode): OglType =
         )
         low(OglType)
 
-proc getRangeSize*(range: NimNode): BiggestInt =
+proc getRangeSize(range: NimNode): BiggestInt =
     ## Given a range node (0..2, for example), return how big it is
     expectKind range, nnkInfix
     assert(range[0].strVal == "..")
@@ -71,7 +83,7 @@ proc getRangeSize*(range: NimNode): BiggestInt =
     expectKind range[2], nnkIntLit
     result = range[2].intVal - range[1].intVal + 1
 
-proc disect*(typename: NimNode): TypeStructure =
+proc disect(typename: NimNode): TypeStructure =
     ## Given type information, returns the number of fields as well as their type
 
     # This will de-obfuscate the GL type aliases back to arrays
