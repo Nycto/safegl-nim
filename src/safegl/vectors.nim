@@ -1,14 +1,43 @@
-import opengl
+import opengl, macros
 
-converter toVector2f*(ary: array[0..1, SomeFloat]): GLvectorf2 =
-    ## Convert an array of floats to a GL vector
-    [ ary[0].GLfloat, ary[1].GLfloat ]
+type GLvectorb2* = array[2, GLbyte]
 
-converter toVector3f*(ary: array[0..2, SomeFloat]): GLvectorf3 =
-    ## Convert an array of floats to a GL vector
-    [ ary[0].GLfloat, ary[1].GLfloat, ary[2].GLfloat ]
+macro createConverter(inputType, outputType, glVectorRoot: untyped): untyped =
+    ## Creates conversion methods for interop between nim native types and OpenGL types
+    expectKind inputType, nnkIdent
+    expectKind outputType, nnkIdent
+    expectKind glVectorRoot, nnkIdent
 
-converter toVector4f*(ary: array[0..3, SomeFloat]): GLvectorf4 =
-    ## Convert an array of floats to a GL vector
-    [ ary[0].GLfloat, ary[1].GLfloat, ary[2].GLfloat, ary[3].GLfloat ]
+    result = newStmtList()
+    for i in 2..4:
+
+        let elements = nnkBracket.newTree()
+
+        result.add(nnkConverterDef.newTree(
+            postfix(ident("to" & glVectorRoot.strVal & $i), "*"),
+            newEmptyNode(),
+            newEmptyNode(),
+            nnkFormalParams.newTree(
+              ident(glVectorRoot.strVal & $i),
+              nnkIdentDefs.newTree(
+                ident("input"),
+                nnkBracketExpr.newTree(ident("array"), newLit(i), inputType),
+                newEmptyNode()
+              )
+            ),
+            newEmptyNode(),
+            newEmptyNode(),
+            newStmtList(
+                newCommentStmtNode("Convert an array of " & inputType.strVal & " to a vector of " & outputType.strVal),
+                elements
+            )
+        ))
+
+        for elem in 0..(i-1):
+            elements.add(newDotExpr(nnkBracketExpr.newTree(ident("input"), newLit(elem)), outputType))
+
+createConverter(SomeFloat, GLfloat, GLvectorf)
+createConverter(SomeInteger, GLint, GLvectori)
+createConverter(SomeInteger, GLbyte, GLvectorb)
+createConverter(SomeInteger, GLubyte, GLvectorub)
 
