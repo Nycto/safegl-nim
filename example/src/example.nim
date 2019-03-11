@@ -1,19 +1,5 @@
 import safegl, opengl, sdl2/sdl, options, times, sdl2util
 
-proc loadTexture(path: string): auto =
-    ## Loads a texture and returns the texture identifier
-
-    # Load a texture
-    let surface = sdl.loadBMP(path)
-    defer: sdl.freeSurface(surface)
-
-    result = newTexture(
-        size = (surface.w.int, surface.h.int),
-        format = if surface.format.BytesPerPixel == 4: OglTexFormat.Rgba else: OglTexFormat.Rgb,
-        pixelType = OglPixelType.UnsignedByte,
-        surface.pixels
-    )
-
 # A basic vertex shader that just forwards the vector position
 const vertexShader = """
 #version 300 es
@@ -80,7 +66,7 @@ initialize(window, screenSize):
 
     var uniforms = MyUniforms(time: 0.0)
 
-    let texture = loadTexture("resources/crate.bmp")
+    let texture = loadPngTexture("resources/crate.png")
 
     let start = epochTime()
 
