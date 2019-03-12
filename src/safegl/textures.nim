@@ -14,6 +14,31 @@ proc asInternalFormat*(self: OglTexFormat): OglTexInternalFormat =
     of OglTexFormat.DepthComponent: OglTexInternalFormat.DepthComponent
     of OglTexFormat.DepthStencil: OglTexInternalFormat.DepthStencil
 
+proc asSlot*(slot: int): OglSlot =
+    ## Returns an integer as as lot
+    assert(slot >= 0 and slot <= 15)
+    case slot
+    of 0: OglSlot.Texture0
+    of 1: OglSlot.Texture1
+    of 2: OglSlot.Texture2
+    of 3: OglSlot.Texture3
+    of 4: OglSlot.Texture4
+    of 5: OglSlot.Texture5
+    of 6: OglSlot.Texture6
+    of 7: OglSlot.Texture7
+    of 8: OglSlot.Texture8
+    of 9: OglSlot.Texture9
+    of 10: OglSlot.Texture10
+    of 11: OglSlot.Texture11
+    of 12: OglSlot.Texture12
+    of 13: OglSlot.Texture13
+    of 14: OglSlot.Texture14
+    of 15: OglSlot.Texture15
+    else:
+        doAssert(false, "Invalid texture slot: " & $slot)
+        OglSlot.Texture0
+
+
 template activate*(textureId: TextureId, slot: OglSlot) =
     ## Activates a texture
     glActiveTexture(slot.glEnum)

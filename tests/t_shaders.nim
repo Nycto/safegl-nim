@@ -2,7 +2,6 @@ import opengl, safegl
 
 type MyVertex = object
     position: GLvectorf3
-    color: GLvectorf4
 
 type MyUniforms = object ## An object to describe the uniform inputs to a shader program
     myGlInt: GLint
@@ -25,15 +24,72 @@ type MyUniforms = object ## An object to describe the uniform inputs to a shader
     myGlMatrixf4x3: array[3, array[4, GLfloat]]
     myGlMatrixf4: GLmatrixf4
 
-proc typeCheckMe() =
-    let program = createProgram[MyUniforms, MyVertex]([
-        OglShaderType.VertexShader: @[ "" ],
+proc typeCheckLinkProgram() =
+    discard linkProgram[MyUniforms, MyVertex, 1]([
+        OglShaderType.VertexShader.create("...")
+    ])
+
+proc typeCheckCompileProgram() =
+    discard compileProgram[MyUniforms, MyVertex, 1]([
+        OglShaderType.VertexShader: @[ "..." ],
         OglShaderType.FragmentShader: @[]
+    ])
+
+proc typeCheckCreateProgram() =
+    discard createProgram[MyUniforms, MyVertex, 1]("...", "...")
+
+proc typeCheckMeFullPipeline() =
+    let program = createProgram[MyUniforms, MyVertex, 2]("...", "...")
+
+    let vao = newVertexArray([
+        MyVertex(position: [-0.5, -0.5, 0.5]),
+        MyVertex(position: [0.5, -0.5, 0.5]),
+        MyVertex(position: [0.5, 0.5, 0.5]),
+    ])
+
+    let texture1 = loadPngTexture("foo.png")
+    let texture2 = loadPngTexture("bar.png")
+
+    var uniforms: MyUniforms
+
+    program.draw(uniforms, [
+        (vao, [ texture1, texture2 ]),
+        (vao, [ texture1, texture2 ]),
+        (vao, [ texture1, texture2 ]),
+    ])
+
+    program.destroy
+
+proc typeCheckDrawOneTexture() =
+    let program = createProgram[MyUniforms, MyVertex, 1]("...", "...")
+
+    let vao = newVertexArray([
+        MyVertex(position: [-0.5, -0.5, 0.5]),
+        MyVertex(position: [0.5, -0.5, 0.5]),
+        MyVertex(position: [0.5, 0.5, 0.5]),
+    ])
+
+    let texture = loadPngTexture("foo.png")
+
+    var uniforms: MyUniforms
+
+    program.draw(uniforms, [ (vao, texture), (vao, texture), (vao, texture) ])
+
+    program.destroy
+
+proc typeCheckDrawNoTexture() =
+    let program = createProgram[MyUniforms, MyVertex, 0]("...", "...")
+
+    let vao = newVertexArray([
+        MyVertex(position: [-0.5, -0.5, 0.5]),
+        MyVertex(position: [0.5, -0.5, 0.5]),
+        MyVertex(position: [0.5, 0.5, 0.5]),
     ])
 
     var uniforms: MyUniforms
 
-    program.use(uniforms)
+    program.draw(uniforms, [ vao, vao, vao ])
 
     program.destroy
+
 

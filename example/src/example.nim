@@ -31,7 +31,7 @@ uniform lowp float time;
 uniform sampler2D tex;
 
 void main() {
-    frag_color = mix(texture(tex, tex_coord), color * vec4(vec3(sin(time) * 1.0 + 1.2), 1.0), 0.5);
+    frag_color = mix(texture(tex, tex_coord), color * vec4(vec3(sin(time) * 1.0), 1.0), 0.5);
 }
 """
 
@@ -60,7 +60,7 @@ initialize(window, screenSize):
     )
 
     # Build and compile our shader program
-    let program = createProgram[MyUniforms, MyVertex](vertexShader, fragmentShader)
+    let program = createProgram[MyUniforms, MyVertex, 1](vertexShader, fragmentShader)
 
     let quad = newVertexArray(vertices)
 
@@ -77,9 +77,7 @@ initialize(window, screenSize):
         clear()
 
         # Draw the triangle
-        program.use(uniforms)
-        texture.activate(OglSlot.Texture0)
-        quad.draw
+        program.draw(uniforms, [ (quad, texture) ])
 
         # Swap in the new rendering
         window.glSwapWindow()
