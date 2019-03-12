@@ -1,33 +1,33 @@
 import enums, opengl, sequtils, macros, strutils, private/types
 
 type
-    OglVertexArrayId = distinct GLuint
+    VertexArrayId = distinct GLuint
 
-    OglVertexBufferId = distinct GLuint
+    VertexBufferId = distinct GLuint
 
-    OglVertexArray*[T] = object
-        id: OglVertexArrayId
-        buffers: seq[OglVertexBufferId]
+    VertexArray*[T] = object
+        id: VertexArrayId
+        buffers: seq[VertexBufferId]
         vertexCount: int
 
-proc genVertexArray(): OglVertexArrayId =
+proc genVertexArray(): VertexArrayId =
     ## Creates a vertex array
     var vao: GLuint
     glGenVertexArrays(1, addr vao)
-    result = vao.OglVertexArrayId
+    result = vao.VertexArrayId
 
-proc bindArray(id: OglVertexArrayId): OglVertexArrayId =
+proc bindArray(id: VertexArrayId): VertexArrayId =
     ## Binds a vertex array
     glBindVertexArray(id.GLuint)
     result = id
 
-proc genVertexBuffer(): OglVertexBufferId =
+proc genVertexBuffer(): VertexBufferId =
     ## Creates a vertex array
     var vbo: GLuint
     glGenBuffers(1, addr vbo)
-    result = vbo.OglVertexBufferId
+    result = vbo.VertexBufferId
 
-proc bindBuffer(id: OglVertexBufferId): OglVertexBufferId =
+proc bindBuffer(id: VertexBufferId): VertexBufferId =
     ## Binds a vertex buffer
     glBindBuffer(GL_ARRAY_BUFFER, id.GLuint)
     result = id
@@ -57,7 +57,7 @@ macro defineAttribs(shape: typed): untyped =
         offset += struct.totalCount * struct.coreType.size
         i += 1
 
-proc newVertexArray*[T](vertices: openarray[T]): OglVertexArray[T] =
+proc newVertexArray*[T](vertices: openarray[T]): VertexArray[T] =
     ## Creates a vertex array instance
     result.id = genVertexArray().bindArray()
     result.buffers.add(genVertexBuffer().bindBuffer())
@@ -70,7 +70,7 @@ proc newVertexArray*[T](vertices: openarray[T]): OglVertexArray[T] =
     glBindBuffer(GL_ARRAY_BUFFER, 0)
     glBindVertexArray(0)
 
-template draw*[T](self: OglVertexArray[T]) =
+template draw*[T](self: VertexArray[T]) =
     ## Draws a vertex array
     glBindVertexArray(self.id.GLuint)
     glDrawArrays(GL_TRIANGLES, 0, self.vertexCount.GLsizei)

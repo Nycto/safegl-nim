@@ -89,7 +89,7 @@ proc use*[U; V; T: static[int]](program: ShaderProgram[U, V, T], uniforms: U) =
 proc draw*[U; V; T: static[int]](
     program: ShaderProgram[U, V, T],
     uniforms: U,
-    models: openarray[tuple[vao: OglVertexArray[V], textures: array[T, TextureId]]]
+    models: openarray[tuple[vao: VertexArray[V], textures: array[T, TextureId]]]
 ) =
     ## Uses a specific program
     program.use(uniforms)
@@ -101,7 +101,7 @@ proc draw*[U; V; T: static[int]](
 proc draw*[U; V](
     program: ShaderProgram[U, V, 1],
     uniforms: U,
-    models: openarray[tuple[vao: OglVertexArray[V], texture: TextureId]]
+    models: openarray[tuple[vao: VertexArray[V], texture: TextureId]]
 ) =
     ## Uses a specific program
     program.use(uniforms)
@@ -112,7 +112,7 @@ proc draw*[U; V](
 proc draw*[U; V](
     program: ShaderProgram[U, V, 0],
     uniforms: U,
-    vaos: openarray[OglVertexArray[V]]
+    vaos: openarray[VertexArray[V]]
 ) =
     ## Uses a specific program
     program.use(uniforms)
