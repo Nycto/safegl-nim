@@ -64,3 +64,7 @@ template clear*(bits: set[OglClear] = { OglClear.ColorBufferBit, OglClear.DepthB
 
     glClear(accum)
 
+template isEnabled*(flag: OglFlag): bool =
+    ## Returns whether an opengl flag is enabled
+    glIsEnabled(flag.glEnum).bool
+

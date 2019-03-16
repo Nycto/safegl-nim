@@ -1,4 +1,4 @@
-import opengl, enums, private/uniforms, vertex, textures
+import opengl, enums, private/uniforms, vertex, textures, core
 
 type
     ShaderError* = object of Defect ## Unrecoverable errors in a shader
@@ -50,6 +50,8 @@ proc destroy*(shaderId: ShaderId) =
 
 proc linkProgram*[U; V; T: static[int]](shaderIds: openarray[ShaderId]): ShaderProgram[U, V, T] =
     ## Creates a shader program
+    assert(T == 0 or OglFlag.Texture2d.isEnabled, "OglFlag.Texture2d must be enabled to render textures")
+
     let programId = glCreateProgram()
     result.programId = programId.ShaderProgramId
 
