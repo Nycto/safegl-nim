@@ -17,7 +17,7 @@ template getError(id: typed, ivFn, logFn: untyped): string =
     ivFn(GLuint(id), GL_INFO_LOG_LENGTH, logSize.addr)
     var logStr = cast[ptr GLchar](alloc(logSize))
     defer: dealloc(logStr)
-    logFn(GLuint(id), logSize.GLsizei, nil, logStr)
+    logFn(GLuint(id), GLsizei(logSize), nil, logStr)
     $logStr
 
 template isFailed(id: typed, ivFn: untyped, statusConst: typed): bool =
