@@ -74,6 +74,8 @@ proc typeCheckMe() =
         MyVertex(position: [0.5, -0.5, 0.5],      color: purple),
     ])
 
+    discard $vao
+
     vao.draw
 
 

@@ -10,6 +10,10 @@ type
         buffers: seq[VertexBufferId]
         vertexCount: int
 
+proc `$`*[T](self: VertexArray[T]): string =
+    ## Stringify a vertex array
+    result = "VertexArray(" & $GLuint(self.id) & ", vertices: " & $self.vertexCount & ")"
+
 proc genVertexArray(): VertexArrayId =
     ## Creates a vertex array
     var vao: GLuint
