@@ -1,4 +1,4 @@
-import safegl, unittest, opengl
+import safegl, unittest
 
 suite "Vector operations":
 

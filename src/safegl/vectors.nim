@@ -11,19 +11,25 @@ macro createConverter(inputType, outputType, glVectorRoot: untyped): untyped =
     result = newStmtList()
     for i in 2..4:
 
+        let vectorType = ident(glVectorRoot.strVal & $i)
+
+        # Add an export statement
+        result.add(nnkExportStmt.newTree(vectorType, outputType))
+
         let elements = nnkBracket.newTree()
 
+        # Add the convert method
         result.add(nnkConverterDef.newTree(
-            postfix(ident("to" & glVectorRoot.strVal & $i), "*"),
+            postfix(ident("to" & vectorType.strVal), "*"),
             newEmptyNode(),
             newEmptyNode(),
             nnkFormalParams.newTree(
-              ident(glVectorRoot.strVal & $i),
-              nnkIdentDefs.newTree(
-                ident("input"),
-                nnkBracketExpr.newTree(ident("array"), newLit(i), inputType),
-                newEmptyNode()
-              )
+                vectorType,
+                nnkIdentDefs.newTree(
+                    ident("input"),
+                    nnkBracketExpr.newTree(ident("array"), newLit(i), inputType),
+                    newEmptyNode()
+                )
             ),
             newEmptyNode(),
             newEmptyNode(),
