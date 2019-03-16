@@ -37,6 +37,7 @@ macro createConverter(inputType, outputType, glVectorRoot: untyped): untyped =
             elements.add(newDotExpr(nnkBracketExpr.newTree(ident("input"), newLit(elem)), outputType))
 
 createConverter(SomeFloat, GLfloat, GLvectorf)
+createConverter(SomeInteger, GLfloat, GLvectorf)
 createConverter(SomeInteger, GLint, GLvectori)
 createConverter(SomeInteger, GLbyte, GLvectorb)
 createConverter(SomeInteger, GLubyte, GLvectorub)
