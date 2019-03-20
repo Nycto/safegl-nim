@@ -45,5 +45,15 @@ converter toGlfloatMatrix*[Rows, Cols: static[int]](
     ## Converts a matrix of ints to a matrix of GLfloats
     convertMatrix(source, Rows, Cols, GLfloat)
 
+proc `*`*[N, M, P: static[int], T: SomeNumber](a: Matrix[N, M, T], b: Matrix[M, P, T]): Matrix[N, P, T] =
+    ## Multiplies two matrices
+
+    # TODO: optimize me
+    for i in 0..(N - 1):
+        for j in 0..(P - 1):
+            var sum: T = 0
+            for k in 0..(M - 1):
+                sum = sum + a[i][k] * b[k][j]
+            result[i][j] = sum
 
 
