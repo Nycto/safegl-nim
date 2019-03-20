@@ -63,4 +63,27 @@ suite "Vector operations":
             [ 318, 342, 366 ]
         ]
 
+    test "Perform matrix multiplication on vectors":
+        let vector: Vector[4, int] = [1, 2, 3, 4]
+
+        let matrix: Matrix[4, 2, int] = [
+            [ 5,  6],
+            [ 7,  8],
+            [ 9, 10],
+            [11, 12]
+        ]
+
+        check vector * matrix == [ 90, 100 ]
+
+    test "Perform matrix multiplication on native opengl types":
+        let vector: GLvectorf3 = [1, 2, 3]
+
+        let matrix: GLmatrixf3 = [
+            [ 4,  5,  6],
+            [ 7,  8,  9],
+            [10, 11, 12]
+        ]
+
+        check vector * matrix == [ 48, 54, 60 ]
+
 

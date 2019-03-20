@@ -56,4 +56,14 @@ proc `*`*[N, M, P: static[int], T: SomeNumber](a: Matrix[N, M, T], b: Matrix[M, 
                 sum = sum + a[i][k] * b[k][j]
             result[i][j] = sum
 
+proc `*`*[N, M: static[int], T: SomeNumber](a: Vector[N, T], b: Matrix[N, M, T]): Vector[M, T] =
+    ## Multiplies a vector by a matrix
+
+    # TODO: optimize me
+    for i in 0..(M - 1):
+        var sum: T = 0
+        for k in 0..(N - 1):
+            sum = sum + a[k] * b[k][i]
+        result[i] = sum
+
 
