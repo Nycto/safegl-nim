@@ -66,4 +66,16 @@ proc `*`*[N, M: static[int], T: SomeNumber](a: Vector[N, T], b: Matrix[N, M, T])
             sum = sum + a[k] * b[k][i]
         result[i] = sum
 
+proc identity*[N: static[int]; T: SomeNumber](matrix: var Matrix[N, N, T]) =
+    ## Sets a matrix back to an identity matrix
+    matrix.addr.zeroMem(sizeOf(Matrix[N, N, T]))
+    for i in 0..(N - 1):
+        matrix[i][i] = T(1)
+
+proc newIdentity*[N: static[int]; T: SomeNumber](): Matrix[N, N, T] =
+    ## Instantiates a new identity matrix
+    result.identity()
+
+
+
 

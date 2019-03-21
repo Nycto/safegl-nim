@@ -86,4 +86,28 @@ suite "Vector operations":
 
         check vector * matrix == [ 48, 54, 60 ]
 
+    test "Set a matrix back to identity":
+        var matrix = [
+            [ 4,  5,  6],
+            [ 7,  8,  9],
+            [10, 11, 12]
+        ]
+
+        matrix.identity()
+
+        check matrix == [
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+        ]
+
+    test "Create an identity matrix":
+        let matrix = newIdentity[4, int]()
+        check matrix == [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+
 
