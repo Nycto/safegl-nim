@@ -9,4 +9,4 @@ srcDir        = "src"
 
 # Dependencies
 
-requires "nim >= 0.19.2", "opengl >= 1.2.0", "stbimage >= 2.3"
+requires "nim >= 1.0.6", "opengl >= 1.2.3", "stbimage >= 2.5"
