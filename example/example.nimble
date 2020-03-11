@@ -10,4 +10,4 @@ bin           = @["example"]
 
 # Dependencies
 
-requires "nim >= 0.19.2", "safegl", "opengl >= 1.2.0", "sdl2_nim >= 2.0.8.0"
+requires "nim >= 1.0.6", "safegl", "opengl >= 1.2.3", "sdl2_nim >= 2.0.10.0"
