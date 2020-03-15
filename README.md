@@ -3,6 +3,10 @@
 SafeGL is a lightweight wrapper around OpenGL that provides type safe guarantees
 without adding overhead.
 
+## Docs
+
+https://nycto.github.io/safegl-nim/safegl.html
+
 ## Type Safety
 
 SafeGL integrates deeply with the Nim type system, translating object types
