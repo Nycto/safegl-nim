@@ -1,4 +1,5 @@
-# SafeGL
+# SafeGL [![Build Status](https://travis-ci.org/Nycto/safegl-nim.svg?branch=master)](https://travis-ci.org/Nycto/safegl-nim)
+
 
 SafeGL is a lightweight wrapper around OpenGL that provides type safe guarantees
 without adding overhead.
