@@ -13,6 +13,13 @@ calls.
 If your program compiles, your app should render. And if it doesn't, you should
 get a descriptive error message telling you why.
 
+* Uses Enums instead of arbitrary constants
+* Distinct types for all IDs
+* Uses macros to automatically bind Nim objects into things like Vertex Buffers
+  and Uniforms
+* Basic texture loading methods
+* Abstraction for compiling and using shaders
+
 ## Example
 
 For a fully functioning example, [look here](https://github.com/Nycto/safegl-nim/blob/master/example/src/example.nim)
