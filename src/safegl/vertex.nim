@@ -1,4 +1,4 @@
-import enums, opengl, sequtils, macros, strutils, private/types
+import enums, opengl, macros, private/types
 
 type
     VertexArrayId = distinct GLuint
@@ -79,4 +79,3 @@ template draw*[T](self: VertexArray[T]) =
     glBindVertexArray(self.id.GLuint)
     glDrawArrays(GL_TRIANGLES, 0, self.vertexCount.GLsizei)
     glBindVertexArray(0)
-

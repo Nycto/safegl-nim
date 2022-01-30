@@ -102,7 +102,7 @@ proc loadPngTexture*(
     wrapT: OglTexWrap = OglTexWrap.Repeat,
 ): TextureId =
     ## Loads a texture from a file
-    assert(path.existsFile, "Image does not exist: " & path)
+    assert(path.fileExists, "Image does not exist: " & path)
 
     var width, height, channels: int
     stbi.setFlipVerticallyOnLoad(true)
@@ -128,6 +128,3 @@ proc loadPngTexture*(
         wrapS = wrapS,
         wrapT = wrapT
     )
-
-
-

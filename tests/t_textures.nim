@@ -1,11 +1,14 @@
-import opengl, safegl
+import safegl, unittest
 
-proc typeCheckMe() =
+test "Texture loading compiles":
+    check:
+        compiles:
+            var data: pointer
 
-    var data: pointer
+            discard newTexture(
+                size = (10, 20),
+                format = OglTexFormat.Rgba,
+                pixelType = OglPixelType.UnsignedByte, data
+            )
 
-    discard newTexture(size = (10, 20), format = OglTexFormat.Rgba, pixelType = OglPixelType.UnsignedByte, data)
-
-    discard loadPngTexture("foo.png")
-
-
+            discard loadPngTexture("foo.png")

@@ -1,4 +1,4 @@
-import ../enums, opengl, macros, strutils, sequtils
+import ../enums, opengl, macros, strutils
 
 type
     TypeKind* {.pure .} = enum ## For nested type structures, describes whether its a leaf or contains another array
@@ -124,5 +124,3 @@ proc category*(structure: TypeStructure): TypeCategory =
         of TypeCategory.Primitive: TypeCategory.Vector
         of TypeCategory.Vector: TypeCategory.Matrix
         of TypeCategory.Matrix, TypeCategory.Other: TypeCategory.Other
-
-

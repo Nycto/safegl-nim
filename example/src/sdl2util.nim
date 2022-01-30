@@ -8,7 +8,7 @@ template sdl2assert*(condition: untyped) =
         else: not condition
     if outcome:
         let msg = astToStr(condition) & "; " & $sdl.getError()
-        raise AssertionError.newException(msg)
+        raise AssertionDefect.newException(msg)
 
 proc getScreenSize*(): tuple[width, height: cint, fullScreenFlag: uint32] =
     ## Determine the size of the display
@@ -59,7 +59,7 @@ template initialize*(window, screenSize, code: untyped) =
 
         code
     except:
-        sdl.log(getCurrentExceptionMsg())
+        sdl.log(getCurrentExceptionMsg().cstring)
         echo getCurrentExceptionMsg()
         raise
 
@@ -72,4 +72,3 @@ template gameLoop*(code: untyped) =
                 if e.kind == sdl.Quit:
                     break endGame
             code
-

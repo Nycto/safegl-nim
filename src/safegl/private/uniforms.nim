@@ -1,4 +1,4 @@
-import opengl, macros, ../enums, types
+import macros, ../enums, types
 
 proc fnSuffix(dataType: OglType, sourceNode: NimNode): string =
     ## Given an opengl type, returns the suffix to use for function calls
@@ -72,4 +72,3 @@ macro setUniforms*(shape, programId: typed, values: untyped): untyped =
                 newStmtList()
 
         result.add(setter)
-

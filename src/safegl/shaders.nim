@@ -17,8 +17,8 @@ template getError(id: typed, ivFn, logFn: untyped): string =
     ivFn(GLuint(id), GL_INFO_LOG_LENGTH, logSize.addr)
     var logStr = cast[ptr GLchar](alloc(logSize))
     defer: dealloc(logStr)
-    logFn(GLuint(id), GLsizei(logSize), nil, logStr)
-    $logStr
+    logFn(GLuint(id), GLsizei(logSize), nil, logStr.cstring)
+    $logStr.cstring
 
 template isFailed(id: typed, ivFn: untyped, statusConst: typed): bool =
     ## Checks a status function for failure
@@ -126,4 +126,3 @@ template destroy*(program: ShaderProgram) =
     glDeleteProgram(GLuint(program.programId))
     for shader in program.shaders:
         shader.destroy
-
